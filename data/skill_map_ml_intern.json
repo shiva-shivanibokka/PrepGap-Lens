@@ -1,0 +1,387 @@
+%%writefile data/skill_map_ml_intern.json
+{
+    "role": "ML Engineer Intern",
+    "version": "0.1",
+    "categories": [
+        {
+            "name": "Core ML",
+            "skills": [
+                {
+                    "id": "ml_basics",
+                    "name": "Supervised Learning Basics",
+                    "weight": 5,
+                    "keywords": [
+                        "linear regression",
+                        "logistic regression",
+                        "loss function",
+                        "objective",
+                        "gradient descent"
+                    ],
+                    "prereqs": [],
+                    "assessment": [
+                        "Explain the difference between linear regression and logistic regression.",
+                        "What is a loss function? Give an example.",
+                        "What does gradient descent do in plain language?"
+                    ],
+                    "resources": [
+                        {
+                            "title": "StatQuest: Linear Regression",
+                            "type": "youtube",
+                            "credibility": "interview-safe",
+                            "reason": "Clear explanations + correct fundamentals.",
+                            "url": "https://www.youtube.com/watch?v=nk2CQITm_eo"
+                        },
+                        {
+                            "title": "StatQuest: Logistic Regression",
+                            "type": "youtube",
+                            "credibility": "interview-safe",
+                            "reason": "Good intuition and math-lite correctness.",
+                            "url": "https://www.youtube.com/watch?v=yIYKR4sgzI8"
+                        },
+                        {
+                            "title": "scikit-learn: Supervised learning (User Guide)",
+                            "type": "docs",
+                            "credibility": "interview-safe",
+                            "reason": "Official reference you can cite in interviews.",
+                            "url": "https://scikit-learn.org/stable/supervised_learning.html"
+                        }
+                    ]
+                },
+                {
+                    "id": "bias_variance",
+                    "name": "Bias-Variance & Overfitting",
+                    "weight": 5,
+                    "keywords": [
+                        "bias variance",
+                        "overfitting",
+                        "underfitting",
+                        "generalization",
+                        "regularization"
+                    ],
+                    "prereqs": [
+                        "ml_basics"
+                    ],
+                    "assessment": [
+                        "What does overfitting look like in metrics?",
+                        "How would you reduce variance in a model?",
+                        "Give a real example of bias vs variance tradeoff."
+                    ],
+                    "resources": [
+                        {
+                            "title": "StatQuest: Bias and Variance",
+                            "type": "youtube",
+                            "credibility": "interview-safe",
+                            "reason": "Interview-friendly mental model.",
+                            "url": "https://www.youtube.com/watch?v=EuBBz3bI-aA"
+                        },
+                        {
+                            "title": "Regularization (Ridge/Lasso) — Intuition",
+                            "type": "youtube",
+                            "credibility": "good-intuition",
+                            "reason": "Good overview but can skip edge cases—pair with practice.",
+                            "url": "https://www.youtube.com/watch?v=Q81RR3yKn30"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Evaluation & Experimentation",
+            "skills": [
+                {
+                    "id": "metrics",
+                    "name": "Classification Metrics",
+                    "weight": 5,
+                    "keywords": [
+                        "precision",
+                        "recall",
+                        "f1",
+                        "confusion matrix",
+                        "roc",
+                        "auc",
+                        "threshold"
+                    ],
+                    "prereqs": [
+                        "ml_basics"
+                    ],
+                    "assessment": [
+                        "When would you optimize precision over recall?",
+                        "What does AUC represent?",
+                        "How does changing the threshold affect precision/recall?"
+                    ],
+                    "resources": [
+                        {
+                            "title": "Precision vs Recall (simple + accurate)",
+                            "type": "youtube",
+                            "credibility": "interview-safe",
+                            "reason": "Correct and easy to explain back.",
+                            "url": "https://www.youtube.com/watch?v=G4ZrEKZ8k68"
+                        },
+                        {
+                            "title": "scikit-learn: Model evaluation (User Guide)",
+                            "type": "docs",
+                            "credibility": "interview-safe",
+                            "reason": "Official reference and metric definitions.",
+                            "url": "https://scikit-learn.org/stable/modules/model_evaluation.html"
+                        }
+                    ]
+                },
+                {
+                    "id": "cv_leakage",
+                    "name": "Cross-Validation & Data Leakage",
+                    "weight": 5,
+                    "keywords": [
+                        "cross validation",
+                        "kfold",
+                        "stratified",
+                        "leakage",
+                        "train test split",
+                        "pipeline"
+                    ],
+                    "prereqs": [
+                        "metrics"
+                    ],
+                    "assessment": [
+                        "What is data leakage? Give one example.",
+                        "Why use cross-validation instead of a single split?",
+                        "How do sklearn Pipelines help prevent leakage?"
+                    ],
+                    "resources": [
+                        {
+                            "title": "Data Leakage Explained",
+                            "type": "youtube",
+                            "credibility": "interview-safe",
+                            "reason": "Very common interview topic; correct framing.",
+                            "url": "https://www.youtube.com/watch?v=1WZV8YwqkqU"
+                        },
+                        {
+                            "title": "scikit-learn: Pipelines and composite estimators",
+                            "type": "docs",
+                            "credibility": "interview-safe",
+                            "reason": "Best practice reference.",
+                            "url": "https://scikit-learn.org/stable/modules/compose.html"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Data & Feature Work",
+            "skills": [
+                {
+                    "id": "pandas_cleaning",
+                    "name": "Pandas, Cleaning, Missing Data",
+                    "weight": 4,
+                    "keywords": [
+                        "pandas",
+                        "data cleaning",
+                        "missing values",
+                        "imputation",
+                        "outliers",
+                        "data types"
+                    ],
+                    "prereqs": [],
+                    "assessment": [
+                        "How do you handle missing values and why?",
+                        "What is the risk of imputing using the full dataset?",
+                        "Show a simple pandas workflow for cleaning."
+                    ],
+                    "resources": [
+                        {
+                            "title": "pandas: 10 minutes to pandas",
+                            "type": "docs",
+                            "credibility": "interview-safe",
+                            "reason": "Official and concise.",
+                            "url": "https://pandas.pydata.org/docs/user_guide/10min.html"
+                        },
+                        {
+                            "title": "Data Cleaning Crash Course (YouTube)",
+                            "type": "youtube",
+                            "credibility": "good-intuition",
+                            "reason": "Useful overview; verify choices with best practices.",
+                            "url": "https://www.youtube.com/watch?v=ZOX18HfLHGQ"
+                        }
+                    ]
+                },
+                {
+                    "id": "feature_engineering",
+                    "name": "Feature Engineering Basics",
+                    "weight": 4,
+                    "keywords": [
+                        "feature engineering",
+                        "encoding",
+                        "one hot",
+                        "scaling",
+                        "standardization",
+                        "feature importance"
+                    ],
+                    "prereqs": [
+                        "pandas_cleaning"
+                    ],
+                    "assessment": [
+                        "When should you scale features and why?",
+                        "How do you handle categorical variables?",
+                        "What is the difference between normalization and standardization?"
+                    ],
+                    "resources": [
+                        {
+                            "title": "Feature Scaling (clear explanation)",
+                            "type": "youtube",
+                            "credibility": "interview-safe",
+                            "reason": "Common interview topic; accurate and simple.",
+                            "url": "https://www.youtube.com/watch?v=mnKm3YP56PY"
+                        },
+                        {
+                            "title": "scikit-learn: Preprocessing data",
+                            "type": "docs",
+                            "credibility": "interview-safe",
+                            "reason": "Official transformations and pipelines.",
+                            "url": "https://scikit-learn.org/stable/modules/preprocessing.html"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Models You’ll Be Asked About",
+            "skills": [
+                {
+                    "id": "trees_boosting",
+                    "name": "Trees & Boosting (High Level)",
+                    "weight": 4,
+                    "keywords": [
+                        "decision tree",
+                        "random forest",
+                        "xgboost",
+                        "lightgbm",
+                        "boosting",
+                        "bagging"
+                    ],
+                    "prereqs": [
+                        "metrics"
+                    ],
+                    "assessment": [
+                        "What is bagging vs boosting?",
+                        "Why do boosted trees often work well on tabular data?",
+                        "What is a common overfitting control in tree models?"
+                    ],
+                    "resources": [
+                        {
+                            "title": "StatQuest: Random Forests",
+                            "type": "youtube",
+                            "credibility": "interview-safe",
+                            "reason": "Clear fundamentals, minimal fluff.",
+                            "url": "https://www.youtube.com/watch?v=J4Wdy0Wc_xQ"
+                        },
+                        {
+                            "title": "Boosting (intuitive explanation)",
+                            "type": "youtube",
+                            "credibility": "good-intuition",
+                            "reason": "Good concept intro; pair with practice questions.",
+                            "url": "https://www.youtube.com/watch?v=GM3CDQfQ4sw"
+                        }
+                    ]
+                },
+                {
+                    "id": "nn_basics",
+                    "name": "Neural Net Basics (Interview Level)",
+                    "weight": 3,
+                    "keywords": [
+                        "neural network",
+                        "backprop",
+                        "activation",
+                        "relu",
+                        "overfitting",
+                        "dropout"
+                    ],
+                    "prereqs": [
+                        "ml_basics"
+                    ],
+                    "assessment": [
+                        "What is backpropagation in simple terms?",
+                        "Why do we use activation functions?",
+                        "Name one way NNs overfit and one way to reduce it."
+                    ],
+                    "resources": [
+                        {
+                            "title": "Neural Networks Explained (fast but solid)",
+                            "type": "youtube",
+                            "credibility": "good-intuition",
+                            "reason": "Good overview; add practice to be interview-ready.",
+                            "url": "https://www.youtube.com/watch?v=aircAruvnKk"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Practical MLE",
+            "skills": [
+                {
+                    "id": "ml_systems_basics",
+                    "name": "Inference, APIs, and Basic Deployment Concepts",
+                    "weight": 3,
+                    "keywords": [
+                        "api",
+                        "fastapi",
+                        "flask",
+                        "inference",
+                        "latency",
+                        "batch",
+                        "online",
+                        "deployment"
+                    ],
+                    "prereqs": [
+                        "pandas_cleaning",
+                        "metrics"
+                    ],
+                    "assessment": [
+                        "Batch vs online inference—what’s the difference?",
+                        "What metrics matter in production besides accuracy?",
+                        "What is latency and why does it matter?"
+                    ],
+                    "resources": [
+                        {
+                            "title": "FastAPI Crash Course",
+                            "type": "youtube",
+                            "credibility": "good-intuition",
+                            "reason": "Great for building a demo API fast; not a full MLOps course.",
+                            "url": "https://www.youtube.com/watch?v=0sOvCWFmrtA"
+                        }
+                    ]
+                },
+                {
+                    "id": "ml_storytelling",
+                    "name": "Explaining Tradeoffs (Interview Communication)",
+                    "weight": 5,
+                    "keywords": [
+                        "tradeoff",
+                        "explain",
+                        "communication",
+                        "assumptions",
+                        "error analysis",
+                        "stakeholders"
+                    ],
+                    "prereqs": [
+                        "metrics",
+                        "cv_leakage"
+                    ],
+                    "assessment": [
+                        "Explain a model choice tradeoff to a non-technical stakeholder.",
+                        "What is error analysis and why do it?",
+                        "How do you decide what metric matters?"
+                    ],
+                    "resources": [
+                        {
+                            "title": "How to answer ML interview questions (framework)",
+                            "type": "youtube",
+                            "credibility": "interview-safe",
+                            "reason": "Good structure for explaining ML decisions.",
+                            "url": "https://www.youtube.com/watch?v=UmE3lH0Jf5M"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
