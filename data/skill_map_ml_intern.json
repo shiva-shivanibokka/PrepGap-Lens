@@ -1,4 +1,3 @@
-%%writefile data/skill_map_ml_intern.json
 {
     "role": "ML Engineer Intern",
     "version": "0.1",
