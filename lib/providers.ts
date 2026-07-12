@@ -19,7 +19,7 @@ export const PROVIDERS: Record<ProviderId, ProviderMeta> = {
   },
   groq: {
     label: "Groq",
-    models: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "gemma2-9b-it"],
+    models: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "openai/gpt-oss-20b"],
     keysUrl: "https://console.groq.com/keys",
   },
   anthropic: {

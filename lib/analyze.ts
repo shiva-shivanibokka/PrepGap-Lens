@@ -65,6 +65,10 @@ export async function runAnalyze(input: {
     model,
     schema: AnalyzeSchema,
     prompt: buildPrompt(input.jd, input.resume),
+    // Many Groq models (e.g. llama-3.3-70b) reject the `json_schema` response format
+    // generateObject uses by default. Disabling structured outputs makes the SDK fall
+    // back to tool-calling, which those models do support.
+    ...(input.provider === "groq" ? { providerOptions: { groq: { structuredOutputs: false } } } : {}),
   });
   return splitCoverage(object);
 }
