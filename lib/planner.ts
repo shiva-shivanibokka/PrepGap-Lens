@@ -79,7 +79,7 @@ export function applyDayFeedback(
   return { newMastery, reinforce: dedupe(reinforce), retry: dedupe(retry) };
 }
 
-export function chooseResource(skill: Skill, taskType: TaskType, rand: () => number): Resource {
+function chooseResource(skill: Skill, taskType: TaskType, rand: () => number): Resource {
   const resources = [...(skill.resources ?? [])];
   if (!resources.length) {
     return {
