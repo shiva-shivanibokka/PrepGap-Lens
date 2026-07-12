@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { KeyBar, type KeyState } from "@/components/KeyBar";
 import { ResultsView } from "@/components/ResultsView";
 import { DayPlanView } from "@/components/DayPlanView";
@@ -14,25 +14,78 @@ import {
 } from "@/lib/planner";
 import { loadProgress, saveProgress, clearProgress, type Progress } from "@/lib/progress";
 
+type JdMode = "paste" | "link";
+type ResumeMode = "paste" | "upload";
+
 export default function Home() {
   const [key, setKey] = useState<KeyState>({ provider: "google", apiKey: "", model: "" });
+
+  const [jdMode, setJdMode] = useState<JdMode>("paste");
   const [jd, setJd] = useState("");
+  const [jdUrl, setJdUrl] = useState("");
+  const [fetchingJd, setFetchingJd] = useState(false);
+
+  const [resumeMode, setResumeMode] = useState<ResumeMode>("paste");
   const [resume, setResume] = useState("");
+  const [resumeFile, setResumeFile] = useState<string | null>(null);
+  const [parsingResume, setParsingResume] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [skills, setSkills] = useState<Skill[] | null>(null);
   const [report, setReport] = useState<ScoreReport | null>(null);
+  const [skills, setSkills] = useState<Skill[] | null>(null);
   const [mastery, setMastery] = useState<Record<string, number>>({});
   const [day, setDay] = useState(1);
   const [plan, setPlan] = useState<DayPlan | null>(null);
 
   const [saved, setSaved] = useState<Progress | null>(null);
-
   useEffect(() => setSaved(loadProgress()), []);
 
-  const canAnalyze = key.apiKey.trim() && jd.trim() && resume.trim() && !loading;
+  const canAnalyze = Boolean(key.apiKey.trim() && jd.trim() && resume.trim()) && !loading;
+
+  async function fetchJd() {
+    setFetchingJd(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/fetch-jd", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ url: jdUrl }),
+      });
+      const data = await res.json();
+      if (!res.ok) setError(data.error ?? "Couldn't fetch that link.");
+      else setJd(data.text);
+    } catch {
+      setError("Couldn't reach that link.");
+    } finally {
+      setFetchingJd(false);
+    }
+  }
+
+  async function onFile(file: File) {
+    setParsingResume(true);
+    setError(null);
+    setResumeFile(file.name);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/parse-resume", { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Couldn't parse that file.");
+        setResumeFile(null);
+      } else {
+        setResume(data.text);
+      }
+    } catch {
+      setError("Couldn't upload that file.");
+      setResumeFile(null);
+    } finally {
+      setParsingResume(false);
+    }
+  }
 
   async function analyze() {
     setLoading(true);
@@ -51,12 +104,11 @@ export default function Home() {
       const s: Skill[] = data.skills;
       const r: ScoreReport = data.report;
       const m = initMasteryFromReport(r);
-      const p = generateDayPlan({ day: 1, skills: s, mastery: m });
       setSkills(s);
       setReport(r);
       setMastery(m);
       setDay(1);
-      setPlan(p);
+      setPlan(generateDayPlan({ day: 1, skills: s, mastery: m }));
       setSaved(null);
       saveProgress({ skills: s, report: r, mastery: m, day: 1 });
     } catch {
@@ -70,14 +122,13 @@ export default function Home() {
     if (!skills) return;
     const { newMastery, reinforce, retry } = applyDayFeedback(mastery, feedback);
     const nd = day + 1;
-    const p = generateDayPlan({ day: nd, skills, mastery: newMastery, reinforceSkills: reinforce, retrySkills: retry });
     setMastery(newMastery);
     setDay(nd);
-    setPlan(p);
+    setPlan(generateDayPlan({ day: nd, skills, mastery: newMastery, reinforceSkills: reinforce, retrySkills: retry }));
     if (report) saveProgress({ skills, report, mastery: newMastery, day: nd });
   }
 
-  function resume_() {
+  function resumePlan() {
     if (!saved) return;
     setSkills(saved.skills);
     setReport(saved.report);
@@ -98,82 +149,150 @@ export default function Home() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-6 py-14">
-      <header>
-        <p className="font-mono text-xs uppercase tracking-[0.25em] text-zinc-500">Interview-readiness lens</p>
-        <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">PrepGap-Lens</h1>
-        <p className="mt-3 max-w-xl text-zinc-600 dark:text-zinc-400">
+    <main className="wrap">
+      <header className="hero">
+        <h1>PrepGap-Lens</h1>
+        <p>
           Paste a job description and your resume. See how ready you are, which gaps cost you the most, and get an
-          adaptive day-by-day plan to close them.
+          adaptive day-by-day plan to close them — powered by your own API key.
         </p>
+        <span className="live">
+          <b>●</b> BYOK · your key never leaves this request
+        </span>
       </header>
 
       {saved && !report && (
-        <div className="mt-8 flex items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50/60 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/40">
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            You have a saved plan on day {saved.day}.
-          </span>
-          <div className="flex gap-2">
-            <button onClick={resume_} className="rounded-full bg-zinc-900 px-4 py-1.5 text-sm text-white dark:bg-zinc-100 dark:text-zinc-900">
-              Resume
+        <section className="panel">
+          <div className="panel-head">
+            <h2>Resume your plan</h2>
+            <span className="chip">saved · day {saved.day}</span>
+          </div>
+          <div className="row-actions" style={{ marginTop: 0 }}>
+            <button className="btn" onClick={resumePlan}>
+              Resume day {saved.day}
             </button>
-            <button onClick={reset} className="rounded-full border border-zinc-300 px-4 py-1.5 text-sm dark:border-zinc-700">
+            <button className="btn btn-ghost" onClick={reset}>
               Discard
             </button>
           </div>
-        </div>
+        </section>
       )}
 
-      <div className="mt-8">
-        <KeyBar value={key} onChange={(patch) => setKey((k) => ({ ...k, ...patch }))} />
-      </div>
+      <section className="panel">
+        <div className="panel-head">
+          <h2>Set up your analysis</h2>
+          <span className="chip">Google · OpenAI · Groq · Anthropic</span>
+        </div>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
-        <label className="grid gap-1.5">
-          <span className="font-mono text-xs uppercase tracking-wider text-zinc-500">Job description</span>
+        <KeyBar value={key} onChange={(patch) => setKey((k) => ({ ...k, ...patch }))} />
+
+        {/* JD row */}
+        <div className="io-row">
+          <div className="io-head">
+            <span className="section-label" style={{ margin: 0 }}>
+              Job description
+            </span>
+            <div className="seg">
+              <button aria-pressed={jdMode === "paste"} onClick={() => setJdMode("paste")}>
+                Paste
+              </button>
+              <button aria-pressed={jdMode === "link"} onClick={() => setJdMode("link")}>
+                From link
+              </button>
+            </div>
+          </div>
+
+          {jdMode === "link" && (
+            <div className="link-row">
+              <input
+                type="url"
+                value={jdUrl}
+                onChange={(e) => setJdUrl(e.target.value)}
+                placeholder="https://company.com/careers/the-role"
+              />
+              <button className="btn btn-ghost btn-sm" onClick={fetchJd} disabled={fetchingJd || !jdUrl.trim()}>
+                {fetchingJd ? "Fetching…" : "Fetch"}
+              </button>
+            </div>
+          )}
+
           <textarea
             value={jd}
             onChange={(e) => setJd(e.target.value)}
-            rows={10}
-            placeholder="Paste the full job posting…"
-            className="resize-y rounded-xl border border-zinc-300 bg-white p-3 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+            rows={8}
+            placeholder={jdMode === "link" ? "Fetched text appears here — edit if needed." : "Paste the full job posting…"}
           />
-        </label>
-        <label className="grid gap-1.5">
-          <span className="font-mono text-xs uppercase tracking-wider text-zinc-500">Your resume</span>
+        </div>
+
+        {/* Resume row */}
+        <div className="io-row">
+          <div className="io-head">
+            <span className="section-label" style={{ margin: 0 }}>
+              Your resume
+            </span>
+            <div className="seg">
+              <button aria-pressed={resumeMode === "paste"} onClick={() => setResumeMode("paste")}>
+                Paste
+              </button>
+              <button aria-pressed={resumeMode === "upload"} onClick={() => setResumeMode("upload")}>
+                Upload
+              </button>
+            </div>
+          </div>
+
+          {resumeMode === "upload" && (
+            <>
+              <label className="dropzone" onClick={() => fileInput.current?.click()}>
+                <span>
+                  {parsingResume ? (
+                    "Reading your file…"
+                  ) : (
+                    <>
+                      <b>Choose a file</b> — PDF or Word (.docx)
+                    </>
+                  )}
+                </span>
+                <input
+                  ref={fileInput}
+                  type="file"
+                  accept=".pdf,.docx"
+                  hidden
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) onFile(f);
+                  }}
+                />
+              </label>
+              {resumeFile && <p className="filemeta">✓ {resumeFile} · {resume.length} chars extracted</p>}
+            </>
+          )}
+
           <textarea
             value={resume}
             onChange={(e) => setResume(e.target.value)}
-            rows={10}
-            placeholder="Paste your resume or skills summary…"
-            className="resize-y rounded-xl border border-zinc-300 bg-white p-3 text-sm dark:border-zinc-700 dark:bg-zinc-950"
+            rows={8}
+            placeholder={resumeMode === "upload" ? "Extracted text appears here — edit if needed." : "Paste your resume or skills summary…"}
           />
-        </label>
-      </div>
+        </div>
 
-      <div className="mt-5 flex items-center gap-4">
-        <button
-          onClick={analyze}
-          disabled={!canAnalyze}
-          className="rounded-full bg-zinc-900 px-6 py-2.5 text-sm font-medium text-white transition-opacity disabled:opacity-40 dark:bg-zinc-100 dark:text-zinc-900"
-        >
-          {loading ? "Analyzing…" : "Analyze gap"}
-        </button>
-        {report && (
-          <button onClick={reset} className="text-sm text-zinc-500 underline underline-offset-2 hover:text-zinc-900 dark:hover:text-zinc-100">
-            Start over
+        <div className="row-actions">
+          <button className="btn" onClick={analyze} disabled={!canAnalyze}>
+            {loading ? "Analyzing…" : "Analyze gap"}
           </button>
-        )}
-      </div>
+          {report && (
+            <button className="btn btn-ghost" onClick={reset}>
+              Start over
+            </button>
+          )}
+        </div>
 
-      {error && (
-        <p className="mt-4 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
-          {error}
-        </p>
-      )}
+        {error && <p className="error">{error}</p>}
+      </section>
 
       {report && <ResultsView report={report} />}
-      {plan && <DayPlanView plan={plan} onNextDay={nextDay} busy={loading} />}
+      {plan && <DayPlanView plan={plan} onNextDay={nextDay} />}
+
+      <p className="footer">Built by Shivani Bokka · BYOK · deployed on Vercel</p>
     </main>
   );
 }

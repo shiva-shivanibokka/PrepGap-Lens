@@ -9,63 +9,59 @@ export interface KeyState {
 export function KeyBar({ value, onChange }: { value: KeyState; onChange: (patch: Partial<KeyState>) => void }) {
   const meta = PROVIDERS[value.provider];
   return (
-    <div className="rounded-xl border border-zinc-200 bg-zinc-50/60 p-4 dark:border-zinc-800 dark:bg-zinc-900/40">
-      <div className="flex items-center justify-between">
-        <p className="font-mono text-xs uppercase tracking-[0.2em] text-zinc-500">Your key, your call</p>
-        <a
-          href={meta.keysUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="font-mono text-xs text-zinc-500 underline decoration-dotted underline-offset-2 hover:text-zinc-900 dark:hover:text-zinc-100"
-        >
+    <div>
+      <div className="keybar-head">
+        <span className="section-label" style={{ margin: 0 }}>
+          Your key, your call
+        </span>
+        <a href={meta.keysUrl} target="_blank" rel="noopener noreferrer" className="chip">
           Get a key ↗
         </a>
       </div>
 
-      <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,10rem)_1fr_minmax(0,12rem)]">
-        <label className="grid gap-1">
-          <span className="font-mono text-[0.7rem] uppercase tracking-wider text-zinc-500">Provider</span>
-          <select
-            value={value.provider}
-            onChange={(e) => onChange({ provider: e.target.value as ProviderId })}
-            className="h-10 rounded-lg border border-zinc-300 bg-white px-3 text-sm dark:border-zinc-700 dark:bg-zinc-950"
-          >
+      <div className="keybar">
+        <div className="field">
+          <label htmlFor="provider">Provider</label>
+          <select id="provider" value={value.provider} onChange={(e) => onChange({ provider: e.target.value as ProviderId })}>
             {PROVIDER_IDS.map((id) => (
               <option key={id} value={id}>
                 {PROVIDERS[id].label}
               </option>
             ))}
           </select>
-        </label>
+        </div>
 
-        <label className="grid gap-1">
-          <span className="font-mono text-[0.7rem] uppercase tracking-wider text-zinc-500">API key</span>
+        <div className="field">
+          <label htmlFor="apiKey">API key</label>
           <input
+            id="apiKey"
+            className="mono"
             type="password"
             value={value.apiKey}
             autoComplete="off"
             spellCheck={false}
             onChange={(e) => onChange({ apiKey: e.target.value })}
-            placeholder="sk-… (kept in this tab only)"
-            className="h-10 rounded-lg border border-zinc-300 bg-white px-3 font-mono text-sm dark:border-zinc-700 dark:bg-zinc-950"
+            placeholder="kept in this tab only"
           />
-        </label>
+        </div>
 
-        <label className="grid gap-1">
-          <span className="font-mono text-[0.7rem] uppercase tracking-wider text-zinc-500">Model (optional)</span>
+        <div className="field">
+          <label htmlFor="model">Model (optional)</label>
           <input
+            id="model"
+            className="mono"
             type="text"
             value={value.model}
             spellCheck={false}
             onChange={(e) => onChange({ model: e.target.value })}
             placeholder={meta.defaultModel}
-            className="h-10 rounded-lg border border-zinc-300 bg-white px-3 font-mono text-sm dark:border-zinc-700 dark:bg-zinc-950"
           />
-        </label>
+        </div>
       </div>
 
-      <p className="mt-3 text-xs text-zinc-500">
-        Your key stays in this browser tab, is sent over HTTPS for a single request, and is never stored or logged. Refreshing the page clears it.
+      <p className="keybar-note">
+        Your key stays in this browser tab, is sent over HTTPS for a single request, and is never stored or logged.
+        Refreshing the page clears it.
       </p>
     </div>
   );
