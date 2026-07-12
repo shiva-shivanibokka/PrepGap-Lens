@@ -1,12 +1,13 @@
-import type { ScoreReport } from "@/lib/types";
+import type { ScoreReport, Skill } from "@/lib/types";
 import { Meter, WeightDots, band } from "./Meter";
 import { Tip } from "./Tip";
 
 const pct = (v: number) => `${Math.round(v * 100)}`;
 
-export function ResultsView({ report }: { report: ScoreReport }) {
+export function ResultsView({ report, skills }: { report: ScoreReport; skills: Skill[] }) {
   const overall = report.readinessOverall;
   const categories = Object.entries(report.readinessByCategory).sort((a, b) => a[1] - b[1]);
+  const nameById = new Map(skills.map((s) => [s.id, s.name] as const));
 
   return (
     <section className="panel">
@@ -46,7 +47,9 @@ export function ResultsView({ report }: { report: ScoreReport }) {
               <span className={`val ${band(g.coverage).text}`}>{pct(g.coverage)}%</span>
             </span>
             <span className="gcat">{g.category}</span>
-            {g.prereqsMissing.length > 0 && <span className="gprereq">needs first: {g.prereqsMissing.join(", ")}</span>}
+            {g.prereqsMissing.length > 0 && (
+              <span className="gprereq">needs first: {g.prereqsMissing.map((id) => nameById.get(id) ?? id).join(", ")}</span>
+            )}
             <Meter value={g.coverage} />
           </div>
         ))}

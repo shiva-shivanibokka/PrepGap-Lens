@@ -321,7 +321,7 @@ export default function Home() {
         {error && <p className="error">{error}</p>}
       </section>
 
-      {report && <ResultsView report={report} />}
+      {report && skills && <ResultsView report={report} skills={skills} />}
       {plan && <DayPlanView plan={plan} onNextDay={nextDay} />}
 
       <p className="footer">Built by Shivani Bokka · BYOK · deployed on Vercel</p>

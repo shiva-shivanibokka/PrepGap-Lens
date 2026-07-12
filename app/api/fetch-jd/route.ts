@@ -1,25 +1,47 @@
 import { NextResponse } from "next/server";
+import { lookup } from "node:dns/promises";
+import { isIP } from "node:net";
+import { htmlToText } from "@/lib/html";
 
 export const runtime = "nodejs";
 export const maxDuration = 20;
 
-// Strip HTML to readable text. ponytail: naive tag-strip — good enough for static job
-// pages; JS-rendered / bot-blocked postings won't extract, so the UI keeps paste as fallback.
-function htmlToText(html: string): string {
-  return html
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, " ")
-    .replace(/<\/(p|div|li|h[1-6]|br|tr|section)>/gi, "\n")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&#39;|&rsquo;|&apos;/gi, "'")
-    .replace(/&quot;|&ldquo;|&rdquo;/gi, '"')
-    .replace(/[ \t]+/g, " ")
-    .replace(/\n\s*\n\s*\n+/g, "\n\n")
-    .trim();
+const MAX_BYTES = 2_000_000; // 2 MB is plenty for a job page
+
+// Reject loopback / private / link-local / cloud-metadata addresses (SSRF guard).
+function isPrivateIp(ip: string): boolean {
+  const v = ip.replace(/^::ffff:/, "");
+  if (v.startsWith("127.") || v === "::1") return true;
+  if (v.startsWith("10.") || v.startsWith("192.168.")) return true;
+  if (v.startsWith("169.254.") || v.toLowerCase().startsWith("fe80:")) return true; // link-local + metadata
+  if (/^172\.(1[6-9]|2\d|3[01])\./.test(v)) return true; // 172.16.0.0/12
+  if (v === "0.0.0.0" || /^f[cd][0-9a-f]{2}:/i.test(v)) return true; // unspecified + unique-local IPv6
+  return false;
+}
+
+async function assertPublicHost(host: string): Promise<void> {
+  const ips = isIP(host) ? [host] : (await lookup(host, { all: true })).map((a) => a.address);
+  if (!ips.length || ips.some(isPrivateIp)) throw new Error("blocked host");
+}
+
+async function readCapped(res: Response): Promise<string> {
+  const declared = Number(res.headers.get("content-length") ?? 0);
+  if (declared > MAX_BYTES) throw new Error("too large");
+  const reader = res.body?.getReader();
+  if (!reader) throw new Error("no body");
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.length;
+    if (total > MAX_BYTES) {
+      await reader.cancel();
+      throw new Error("too large");
+    }
+    chunks.push(value);
+  }
+  return new TextDecoder().decode(Buffer.concat(chunks));
 }
 
 export async function POST(req: Request) {
@@ -36,13 +58,26 @@ export async function POST(req: Request) {
     if (!/^https?:$/.test(target.protocol))
       return NextResponse.json({ error: "Only http(s) links are supported." }, { status: 400 });
 
+    try {
+      await assertPublicHost(target.hostname);
+    } catch {
+      return NextResponse.json({ error: "That address isn't allowed. Paste the description instead." }, { status: 400 });
+    }
+
     const res = await fetch(target, {
       headers: { "user-agent": "Mozilla/5.0 (compatible; PrepGapLens/1.0)", accept: "text/html" },
       redirect: "follow",
+      signal: AbortSignal.timeout(10_000),
     });
     if (!res.ok) return NextResponse.json({ error: `The page returned ${res.status}.` }, { status: 502 });
 
-    const text = htmlToText(await res.text());
+    let text: string;
+    try {
+      text = htmlToText(await readCapped(res));
+    } catch {
+      return NextResponse.json({ error: "That page is too large to read. Paste it instead." }, { status: 413 });
+    }
+
     if (text.length < 80)
       return NextResponse.json(
         { error: "Couldn't read enough text from that link (it may need a login or JavaScript). Paste it instead." },
@@ -50,7 +85,8 @@ export async function POST(req: Request) {
       );
 
     return NextResponse.json({ text: text.slice(0, 20000) });
-  } catch {
+  } catch (err) {
+    console.error("[fetch-jd]", err);
     return NextResponse.json({ error: "Couldn't fetch that link. Paste the description instead." }, { status: 502 });
   }
 }

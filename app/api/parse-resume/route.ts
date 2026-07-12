@@ -31,7 +31,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Couldn't read text from that file. Paste your resume instead." }, { status: 422 });
 
     return NextResponse.json({ text: text.slice(0, 20000) });
-  } catch {
+  } catch (err) {
+    console.error("[parse-resume]", err);
     return NextResponse.json({ error: "Couldn't parse that file. Paste your resume instead." }, { status: 502 });
   }
 }

@@ -1,5 +1,7 @@
 # Fix Plan — PrepGap-Lens
 
+> **STATUS: ✅ ALL 6 TASKS APPLIED — 2026-07-12.** SSRF guard verified against metadata/localhost/private IPs; public fetch still works; 8/8 tests pass; build clean. Kept for the record.
+
 Generated from repo-bug-audit on 2026-07-12. 6 tasks, ordered so the shared-file security fixes land together and the pure helper is extracted+tested first.
 
 All tasks touch `app/api/fetch-jd/route.ts` except Task 5. Apply 1→4 in order (same file). Task 5 and 6 are independent.
