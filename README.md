@@ -4,7 +4,7 @@
 
 Most interview-prep tools hand you a generic checklist. PrepGap-Lens measures the gap between *your* resume and *this specific* job posting, then turns that gap into a concrete study schedule that adapts as you make progress.
 
-🔗 **Live demo:** _add your Vercel URL here after deploying_
+🔗 **Live demo:** https://prepgap-lens.vercel.app
 
 <!-- add a screenshot/GIF here: docs/screenshot.png -->
 
