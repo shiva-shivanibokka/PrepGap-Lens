@@ -1,4 +1,5 @@
 import { PROVIDERS, PROVIDER_IDS, type ProviderId } from "@/lib/providers";
+import { Tip } from "./Tip";
 
 export interface KeyState {
   provider: ProviderId;
@@ -19,10 +20,14 @@ export function KeyBar({ value, onChange }: { value: KeyState; onChange: (patch:
         </a>
       </div>
 
-      <div className="keybar">
+      {/* provider + model side by side */}
+      <div className="keybar-top">
         <div className="field">
-          <label htmlFor="provider">Provider</label>
-          <select id="provider" value={value.provider} onChange={(e) => onChange({ provider: e.target.value as ProviderId })}>
+          <span className="lbl head-tip">
+            Provider
+            <Tip text="Which AI company's model runs the analysis. Google and Groq have free tiers." />
+          </span>
+          <select value={value.provider} onChange={(e) => onChange({ provider: e.target.value as ProviderId })}>
             {PROVIDER_IDS.map((id) => (
               <option key={id} value={id}>
                 {PROVIDERS[id].label}
@@ -32,31 +37,35 @@ export function KeyBar({ value, onChange }: { value: KeyState; onChange: (patch:
         </div>
 
         <div className="field">
-          <label htmlFor="apiKey">API key</label>
-          <input
-            id="apiKey"
-            className="mono"
-            type="password"
-            value={value.apiKey}
-            autoComplete="off"
-            spellCheck={false}
-            onChange={(e) => onChange({ apiKey: e.target.value })}
-            placeholder="kept in this tab only"
-          />
+          <span className="lbl head-tip">
+            Model
+            <Tip text="The specific model to use. Smaller models (flash, mini, haiku) are cheaper and faster; larger ones are more accurate." />
+          </span>
+          <select value={value.model} onChange={(e) => onChange({ model: e.target.value })}>
+            {meta.models.map((m) => (
+              <option key={m} value={m}>
+                {m}
+              </option>
+            ))}
+          </select>
         </div>
+      </div>
 
-        <div className="field">
-          <label htmlFor="model">Model (optional)</label>
-          <input
-            id="model"
-            className="mono"
-            type="text"
-            value={value.model}
-            spellCheck={false}
-            onChange={(e) => onChange({ model: e.target.value })}
-            placeholder={meta.defaultModel}
-          />
-        </div>
+      {/* api key last, full width */}
+      <div className="field" style={{ marginTop: "1rem" }}>
+        <span className="lbl head-tip">
+          API key
+          <Tip text="Your own key for the chosen provider. It's used for a single request and never stored or logged; refreshing the page clears it." />
+        </span>
+        <input
+          className="mono"
+          type="password"
+          value={value.apiKey}
+          autoComplete="off"
+          spellCheck={false}
+          onChange={(e) => onChange({ apiKey: e.target.value })}
+          placeholder="kept in this tab only"
+        />
       </div>
 
       <p className="keybar-note">

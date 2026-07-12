@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { KeyBar, type KeyState } from "@/components/KeyBar";
 import { ResultsView } from "@/components/ResultsView";
 import { DayPlanView } from "@/components/DayPlanView";
+import { Tip } from "@/components/Tip";
+import { defaultModel } from "@/lib/providers";
 import type { Skill, ScoreReport } from "@/lib/types";
 import {
   generateDayPlan,
@@ -18,16 +20,18 @@ type JdMode = "paste" | "link";
 type ResumeMode = "paste" | "upload";
 
 export default function Home() {
-  const [key, setKey] = useState<KeyState>({ provider: "google", apiKey: "", model: "" });
+  const [key, setKey] = useState<KeyState>({ provider: "google", apiKey: "", model: defaultModel("google") });
 
   const [jdMode, setJdMode] = useState<JdMode>("paste");
   const [jd, setJd] = useState("");
   const [jdUrl, setJdUrl] = useState("");
+  const [jdLoaded, setJdLoaded] = useState(false);
   const [fetchingJd, setFetchingJd] = useState(false);
 
   const [resumeMode, setResumeMode] = useState<ResumeMode>("paste");
   const [resume, setResume] = useState("");
   const [resumeFile, setResumeFile] = useState<string | null>(null);
+  const [resumeLoaded, setResumeLoaded] = useState(false);
   const [parsingResume, setParsingResume] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -45,6 +49,15 @@ export default function Home() {
 
   const canAnalyze = Boolean(key.apiKey.trim() && jd.trim() && resume.trim()) && !loading;
 
+  function updateKey(patch: Partial<KeyState>) {
+    setKey((k) => {
+      const next = { ...k, ...patch };
+      // switching provider resets the model to that provider's default
+      if (patch.provider) next.model = defaultModel(patch.provider);
+      return next;
+    });
+  }
+
   async function fetchJd() {
     setFetchingJd(true);
     setError(null);
@@ -55,10 +68,19 @@ export default function Home() {
         body: JSON.stringify({ url: jdUrl }),
       });
       const data = await res.json();
-      if (!res.ok) setError(data.error ?? "Couldn't fetch that link.");
-      else setJd(data.text);
+      if (!res.ok) {
+        // couldn't read the link — fall back to paste so the user can drop it in
+        setJd("");
+        setJdLoaded(false);
+        setJdMode("paste");
+        setError(data.error ?? "Couldn't fetch that link — please paste the job description instead.");
+      } else {
+        setJd(data.text);
+        setJdLoaded(true);
+      }
     } catch {
-      setError("Couldn't reach that link.");
+      setJdMode("paste");
+      setError("Couldn't reach that link — please paste the job description instead.");
     } finally {
       setFetchingJd(false);
     }
@@ -67,21 +89,25 @@ export default function Home() {
   async function onFile(file: File) {
     setParsingResume(true);
     setError(null);
-    setResumeFile(file.name);
     try {
       const fd = new FormData();
       fd.append("file", file);
       const res = await fetch("/api/parse-resume", { method: "POST", body: fd });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Couldn't parse that file.");
+        setResume("");
         setResumeFile(null);
+        setResumeLoaded(false);
+        setResumeMode("paste");
+        setError(data.error ?? "Couldn't read that file — please paste your resume instead.");
       } else {
         setResume(data.text);
+        setResumeFile(file.name);
+        setResumeLoaded(true);
       }
     } catch {
-      setError("Couldn't upload that file.");
-      setResumeFile(null);
+      setResumeMode("paste");
+      setError("Couldn't upload that file — please paste your resume instead.");
     } finally {
       setParsingResume(false);
     }
@@ -180,17 +206,21 @@ export default function Home() {
 
       <section className="panel">
         <div className="panel-head">
-          <h2>Set up your analysis</h2>
+          <div className="head-tip">
+            <h2>Set up your analysis</h2>
+            <Tip text="Choose a provider + model, add your API key, then give the job description and your resume." />
+          </div>
           <span className="chip">Google · OpenAI · Groq · Anthropic</span>
         </div>
 
-        <KeyBar value={key} onChange={(patch) => setKey((k) => ({ ...k, ...patch }))} />
+        <KeyBar value={key} onChange={updateKey} />
 
         {/* JD row */}
         <div className="io-row">
           <div className="io-head">
             <span className="section-label" style={{ margin: 0 }}>
               Job description
+              <Tip text="The posting you're preparing for. Paste the text, or fetch it from a public link." />
             </span>
             <div className="seg">
               <button aria-pressed={jdMode === "paste"} onClick={() => setJdMode("paste")}>
@@ -202,26 +232,27 @@ export default function Home() {
             </div>
           </div>
 
-          {jdMode === "link" && (
-            <div className="link-row">
-              <input
-                type="url"
-                value={jdUrl}
-                onChange={(e) => setJdUrl(e.target.value)}
-                placeholder="https://company.com/careers/the-role"
-              />
-              <button className="btn btn-ghost btn-sm" onClick={fetchJd} disabled={fetchingJd || !jdUrl.trim()}>
-                {fetchingJd ? "Fetching…" : "Fetch"}
-              </button>
-            </div>
+          {jdMode === "paste" ? (
+            <textarea value={jd} onChange={(e) => setJd(e.target.value)} rows={8} placeholder="Paste the full job posting…" />
+          ) : (
+            <>
+              <div className="link-row">
+                <input
+                  type="url"
+                  value={jdUrl}
+                  onChange={(e) => {
+                    setJdUrl(e.target.value);
+                    setJdLoaded(false);
+                  }}
+                  placeholder="https://company.com/careers/the-role"
+                />
+                <button className="btn btn-ghost btn-sm" onClick={fetchJd} disabled={fetchingJd || !jdUrl.trim()}>
+                  {fetchingJd ? "Fetching…" : "Fetch"}
+                </button>
+              </div>
+              {jdLoaded && <p className="load-msg">✓ Job description loaded from the link.</p>}
+            </>
           )}
-
-          <textarea
-            value={jd}
-            onChange={(e) => setJd(e.target.value)}
-            rows={8}
-            placeholder={jdMode === "link" ? "Fetched text appears here — edit if needed." : "Paste the full job posting…"}
-          />
         </div>
 
         {/* Resume row */}
@@ -229,6 +260,7 @@ export default function Home() {
           <div className="io-head">
             <span className="section-label" style={{ margin: 0 }}>
               Your resume
+              <Tip text="Your resume or a skills summary. Paste it, or upload a PDF or Word (.docx) file." />
             </span>
             <div className="seg">
               <button aria-pressed={resumeMode === "paste"} onClick={() => setResumeMode("paste")}>
@@ -240,7 +272,14 @@ export default function Home() {
             </div>
           </div>
 
-          {resumeMode === "upload" && (
+          {resumeMode === "paste" ? (
+            <textarea
+              value={resume}
+              onChange={(e) => setResume(e.target.value)}
+              rows={8}
+              placeholder="Paste your resume or skills summary…"
+            />
+          ) : (
             <>
               <label className="dropzone" onClick={() => fileInput.current?.click()}>
                 <span>
@@ -263,16 +302,9 @@ export default function Home() {
                   }}
                 />
               </label>
-              {resumeFile && <p className="filemeta">✓ {resumeFile} · {resume.length} chars extracted</p>}
+              {resumeLoaded && resumeFile && <p className="load-msg">✓ {resumeFile} read successfully.</p>}
             </>
           )}
-
-          <textarea
-            value={resume}
-            onChange={(e) => setResume(e.target.value)}
-            rows={8}
-            placeholder={resumeMode === "upload" ? "Extracted text appears here — edit if needed." : "Paste your resume or skills summary…"}
-          />
         </div>
 
         <div className="row-actions">

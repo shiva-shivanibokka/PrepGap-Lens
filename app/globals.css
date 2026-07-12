@@ -150,7 +150,59 @@ a {
   letter-spacing: 0.12em;
   color: var(--muted);
   margin: 0 0 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
+.head-tip { display: inline-flex; align-items: center; gap: 0.5rem; }
+
+/* ---- help tooltip ---- */
+.tip { position: relative; display: inline-flex; }
+.tip > .q {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: help;
+  font-size: 0.64rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--cyan);
+  background: color-mix(in srgb, var(--cyan) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cyan) 45%, var(--border));
+}
+.tip .pop {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  width: max-content;
+  max-width: 260px;
+  padding: 0.6rem 0.7rem;
+  border-radius: 10px;
+  z-index: 20;
+  background: #0d1330;
+  border: 1px solid var(--violet);
+  color: var(--text);
+  font-size: 0.76rem;
+  line-height: 1.45;
+  letter-spacing: normal;
+  text-transform: none;
+  font-family: var(--font-body);
+  box-shadow: 0 14px 40px -12px #000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.16s ease;
+  pointer-events: none;
+}
+.tip:hover .pop,
+.tip:focus-within .pop {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+.load-msg { font-family: var(--font-mono); font-size: 0.8rem; color: var(--ok); margin: 0.3rem 0 0; }
 
 /* ---- form fields ---- */
 .field { display: grid; gap: 0.4rem; }
@@ -205,10 +257,10 @@ button:focus-visible {
 .seg button[aria-pressed="true"] { color: #07101f; background: var(--cyan); border-color: var(--cyan); font-weight: 700; }
 
 /* ---- key bar ---- */
-.keybar { display: grid; gap: 1rem; grid-template-columns: minmax(0, 12rem) 1fr minmax(0, 13rem); }
+.keybar-top { display: grid; gap: 1rem; grid-template-columns: 1fr 1fr; }
 .keybar-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.9rem; }
 .keybar-note { color: var(--muted); font-size: 0.78rem; margin: 0.9rem 0 0; line-height: 1.5; }
-@media (max-width: 720px) { .keybar { grid-template-columns: 1fr; } }
+@media (max-width: 720px) { .keybar-top { grid-template-columns: 1fr; } }
 
 /* ---- IO rows (JD, resume) ---- */
 .io-row { display: grid; gap: 0.6rem; margin-top: 1.5rem; }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { DayPlan, DayFeedback } from "@/lib/planner";
+import { Tip } from "./Tip";
 
 const DIFFICULTIES: DayFeedback["difficulty"][] = ["easy", "ok", "hard"];
 
@@ -24,9 +25,10 @@ export function DayPlanView({
   return (
     <section className="panel">
       <div className="panel-head">
-        <h2>
-          Day {String(plan.day).padStart(2, "0")}
-        </h2>
+        <div className="head-tip">
+          <h2>Day {String(plan.day).padStart(2, "0")}</h2>
+          <Tip text="A focused study plan for today, targeting your biggest gaps. Mark each task done or skipped and rate difficulty — tomorrow's plan adapts to that." />
+        </div>
         <span className="chip">{plan.totalMinutes} min · adaptive</span>
       </div>
 

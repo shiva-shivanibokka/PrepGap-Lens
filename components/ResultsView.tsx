@@ -1,5 +1,6 @@
 import type { ScoreReport } from "@/lib/types";
 import { Meter, WeightDots, band } from "./Meter";
+import { Tip } from "./Tip";
 
 const pct = (v: number) => `${Math.round(v * 100)}`;
 
@@ -10,7 +11,10 @@ export function ResultsView({ report }: { report: ScoreReport }) {
   return (
     <section className="panel">
       <div className="panel-head">
-        <h2>Your readiness</h2>
+        <div className="head-tip">
+          <h2>Your readiness</h2>
+          <Tip text="How well your resume already covers what this job asks for — overall and by category. Higher is better." />
+        </div>
         <span className="chip">gap vs. this job</span>
       </div>
 
@@ -31,6 +35,7 @@ export function ResultsView({ report }: { report: ScoreReport }) {
 
       <p className="section-label" style={{ marginTop: "2rem" }}>
         Biggest gaps to close
+        <Tip text="Skills ranked by impact = how much you're missing × how important it is to this job. The dots show importance (1–5); the bar shows your current coverage." />
       </p>
       <div className="gaps">
         {report.topGaps.map((g) => (
