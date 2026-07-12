@@ -41,7 +41,10 @@ export function splitCoverage(parsed: AnalyzeParsed): { skills: Skill[]; coverag
 }
 
 export function buildPrompt(jd: string, resume: string): string {
-  return `You are an interview-prep analyst. Read the JOB DESCRIPTION and the CANDIDATE RESUME, then produce a structured skill gap analysis.
+  // NOTE: the literal word "JSON" must stay in this prompt — Groq/OpenAI json_object
+  // mode (used when structured outputs are disabled) rejects requests whose messages
+  // don't mention "json".
+  return `You are an interview-prep analyst. Read the JOB DESCRIPTION and the CANDIDATE RESUME, then produce a structured skill gap analysis as a single JSON object.
 Rules: output 8-15 skills the JOB actually requires. weight = importance to THIS job (5=core, 1=nice-to-have). prereqs must only reference ids you also output. coverage = how convincingly the RESUME demonstrates that skill (0=absent, 1=clearly proven). assessment = one likely interview question per skill. Suggest 1-2 real, well-known resources per skill; mark anything you are unsure about as "good-intuition", and never invent a specific URL you are not confident exists.
 
 JOB DESCRIPTION:
