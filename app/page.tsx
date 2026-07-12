@@ -47,7 +47,23 @@ export default function Home() {
   const [saved, setSaved] = useState<Progress | null>(null);
   useEffect(() => setSaved(loadProgress()), []);
 
-  const canAnalyze = Boolean(key.apiKey.trim() && jd.trim() && resume.trim()) && !loading;
+  function analyze() {
+    // Validate on click (not by disabling the button) so the user always sees *why* it won't run.
+    if (!key.apiKey.trim()) return setError("Add your provider API key above.");
+    if (!jd.trim())
+      return setError(
+        jdMode === "link"
+          ? "No job description loaded yet — click Fetch, or switch to Paste."
+          : "Add the job description — paste it, or use the From-link option.",
+      );
+    if (!resume.trim())
+      return setError(
+        resumeMode === "upload"
+          ? "No resume loaded yet — choose a file, or switch to Paste."
+          : "Add your resume — paste it, or upload a PDF/Word file.",
+      );
+    void runAnalyze();
+  }
 
   function updateKey(patch: Partial<KeyState>) {
     setKey((k) => {
@@ -113,7 +129,7 @@ export default function Home() {
     }
   }
 
-  async function analyze() {
+  async function runAnalyze() {
     setLoading(true);
     setError(null);
     try {
@@ -308,7 +324,7 @@ export default function Home() {
         </div>
 
         <div className="row-actions">
-          <button className="btn" onClick={analyze} disabled={!canAnalyze}>
+          <button className="btn" onClick={analyze} disabled={loading}>
             {loading ? "Analyzing…" : "Analyze gap"}
           </button>
           {report && (

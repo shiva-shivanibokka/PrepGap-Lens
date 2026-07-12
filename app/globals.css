@@ -231,6 +231,24 @@ textarea {
 }
 input.mono { font-family: var(--font-mono); }
 textarea { resize: vertical; line-height: 1.55; }
+
+/* custom-styled dropdowns that match the dark theme */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  padding-right: 2.2rem;
+  background-color: var(--panel-2);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%2322d3ee' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.75 6 6.25 11 1.75'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  background-size: 0.72rem;
+}
+select:hover { border-color: color-mix(in srgb, var(--cyan) 55%, var(--border)); }
+select option {
+  background: var(--panel-solid);
+  color: var(--text);
+}
 ::placeholder { color: color-mix(in srgb, var(--muted) 75%, transparent); }
 select:focus,
 input:focus-visible,
