@@ -97,7 +97,7 @@ flowchart TD
 - **LLM application development** — schema-constrained structured output (`generateObject` + Zod), a multi-provider abstraction, and a provider-specific fallback (tool-calling for Groq).
 - **RESTful API design** — three focused serverless endpoints with input validation and typed error responses.
 - **Application security** — SSRF prevention with per-redirect-hop host validation; secret handling that never persists or logs a user's API key; input validation at every trust boundary.
-- **System design & architecture** — a deliberate LLM-vs-deterministic boundary, documented tradeoffs, and an in-repo audit (`AUDIT.md`).
+- **System design & architecture** — a deliberate LLM-vs-deterministic boundary, with the tradeoffs documented where they are made.
 - **Automated testing** — 10 unit tests across the scoring, planner, extraction, HTML, and SSRF-guard logic.
 - **Cloud deployment** — live on **Vercel**, git-connected for auto-deploys.
 - **Modern TypeScript / React** — Next.js App Router, React 19, strict typing across a small but real codebase.
@@ -181,8 +181,6 @@ lib/
   html.ts  net.ts             # HTML→text, private-IP SSRF guard
   progress.ts  types.ts
   __tests__/                  # score · planner · analyze · html · net
-AUDIT.md  PLAN.md             # in-repo bug audit + applied fix plan
-docs/superpowers/plans/       # implementation plan
 ```
 
 ---
